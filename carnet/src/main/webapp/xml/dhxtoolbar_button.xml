@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<toolbar>
+	 <item id="add"    type="button"    img="new.gif"  imgdis="new_dis.gif"  text="新增"  action="doOnAdd"/>
+     <item id="delete" type="button" img="cut.gif"  imgdis="cut_dis.gif"  text="删除" action="doOnDelete" />
+<!--      <item id="update" type="button"    img="cut.gif" imgdis="cut_dis.gif" text="更新" action="doOnUpdate"></item> -->
+</toolbar>

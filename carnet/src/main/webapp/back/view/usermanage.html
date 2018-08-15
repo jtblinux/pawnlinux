@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>用户管理</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	
+	<link rel="stylesheet" type="text/css" href="../../static/dhtmlx/codebase/fonts/font_roboto/roboto.css"/>
+	<link rel="stylesheet" type="text/css" href="../../static/dhtmlx/codebase/dhtmlx.css"/>
+	<script type="text/javascript" src="../../static/js/jquery.min.js"></script>
+	<script src="../../static/dhtmlx/codebase/dhtmlx.js"></script>
+<style type="text/css">
+ html, body {
+			width: 100%;
+			height: 100%;
+			margin: 0px;
+			padding: 0px;
+			background-color: #ebebeb;
+			overflow: hidden;
+		}
+#gridId{
+   width:100%;
+   height:100%;
+}		
+</style>
+</head>
+<body onload="onwindowload()">
+   <div id="toolbar"></div>
+   <div id="gridId"></div>
+   <div id="winVP" style="display: none;">
+        <div id="winT" >
+            
+		</div>
+   </div>
+</body>
+<script type="text/javascript">
+//variables
+  var grid,dataPro,toolbar,dhxWins,w1,form;
+  function isPhone(value){
+	    var isValiated=/^1\d{10}$/.test(value);
+	    console.log(isValiated);
+	    return isValiated;
+  } 
+  function doOnAdd(){
+	  if(!dhxWins)
+	{ 
+	  dhxWins=new dhtmlXWindows();  
+	  w1 = dhxWins.createWindow("w1", 20, 30, 400,370);
+	  w1.setText("新增");
+	  w1.setModal(true);
+	  w1.attachObject("winVP");  
+	  var formData=[
+		       {type: "settings", position: "label-left"},
+			   {type:"fieldset",name:"data",label:"新增",inputWidth:"auto",offsetLeft:20,offsetTop:20,
+				   list:[
+				    {type:"input",name:"username",label:"用户名",required: true, validate:"NotEmpty",tooltip:"用户名不能为空",info:true},
+				    {type:"input",name:"password",label:"密码",required: true, validate:"NotEmpty",tooltip:"密码不能为空"},
+				    {type:"input",name:"phone",label:"电话",required:true,tooltip:"请输入符合规范的电话格式",validate:"isPhone"},
+				    {type:"select",name:"gender",label:"性别",inputWidth:"100",options:[
+				         {text:"男",value:"0"},{text:"女",value:"1"}
+				    ]},
+				    {type:"input",name:"email",label:"邮箱",required:true,tooltip:"请输入符合规范的邮箱格式",validate:"ValidEmail"},
+				    {type:"button",name:"add",value:"保存"}
+				   ]}
+			   ];
+	   
+	    form=w1.attachForm(formData);
+	    form.attachEvent("onButtonClick",function(name){
+			    if(name=="add"){  
+				    //开启验证
+				    form.validate();
+				}
+	    });
+			//验证
+		   form.attachEvent("onAfterValidate", function(status) {
+				//获取表单数据。
+		    	if(status){  
+			          var data = form.getFormData();
+							//发送ajax
+							$.ajax({
+								url : "../insertUser.do",
+								type : "post",
+								data : data,
+								dateType : "json",
+								success : function(data) {
+									grid.clearAndLoad("../../listUser.do");
+									hideWindow();
+								},
+								error : function(e) {
+									alert("系统异常")
+								}
+							});
+		    	}
+			});
+			//覆盖原先的关闭事件。
+			w1.attachEvent("onClose", function(win) {
+				      hideWindow();
+			});
+			//动态验证。
+			form.enableLiveValidation(true);
+		} else {
+			showWindow();
+		}
+		return false;
+	}
+	function doOnDelete() {
+		var id = grid.getSelectedId();
+		if (id) {
+			dhtmlx.confirm({
+				title : "删除",
+				ok : "Yes",
+				cancel : "No",
+				text : "你确定要删除这个选项吗",
+				callback : function(result) {
+					//result,返回用户的选项。
+					if (result) {
+						$.ajax({
+							url : "../deleteUser.do?id=" + id,
+							type : "get",
+							dateType : "json",
+							success : function(data) {
+								grid.deleteSelectedItem();
+								grid.clearAndLoad("../../listUser.do");
+							},
+							error : function(e) {
+								alert("系统异常")
+							}
+						});
+					}
+				}
+			});
+
+		} else {
+			dhtmlx.alert("请选择一个选项");
+		}
+	}
+	function doOnAfterRowDeleted(rowId) {
+            alert("删除成功");
+	}
+	function doOnUpdate() {
+            //获得选中的一行的数据。
+		 
+	}
+
+	function showWindow() {
+		this.dhxWins.window("w1").show();
+		this.w1.setModal(true);
+	}
+	function hideWindow() {
+		this.dhxWins.window("w1").hide();
+		//清除表单数据。
+		form.clear();
+		this.w1.setModal(false);
+	}
+	function initToolbar() {
+		toolbar = new dhtmlXToolbarObject({
+			parent : "toolbar",
+			icons_path : "../../img/toolbar/imgs/",
+			xml : "../../xml/dhxtoolbar_button.xml"
+		});
+		//添加分割线
+		toolbar.addSeparator("sep5", 14);
+	}
+
+	function initGrid() {
+		grid = new dhtmlXGridObject("gridId");
+		//设置grid
+		grid.setImagePath("../static/dhtmlx/codebase/imgs/");
+		grid.setHeader("用户名,密码,邮箱,电话,性别");
+		//grid.setInitWidths("70,100,100,150,*");
+		grid.setColAlign("left,left,left", "left", "left");
+		grid.setColTypes("ed,ed,ed,ed,ro");
+		//这个关系到后面的自动传值，必须设置。
+		grid.setColumnIds("username,password,phone,email,gender");
+		grid.enableAutoWidth(true);
+		grid.attachEvent("onAfterRowDeleted", doOnAfterRowDeleted);
+		grid.init();
+		grid.load("../../listUser.do");
+		// 			 dataPro=new dataProcessor("../../updateUser.do");	
+		// 			 dataPro.enableDataNames(true);
+		// 		     dataPro.setTransactionMode("POST",true);
+		// 			 dataPro.setUpdateMode("off"); //关闭进度条		
+		// 			 dataPro.init(grid);                   
+	}
+	function onwindowload() {
+		initGrid();
+		initToolbar();
+	}
+</script>
+</html>

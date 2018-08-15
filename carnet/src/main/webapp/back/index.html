@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>主页面</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>	
+	<link rel="stylesheet" type="text/css" href="../static/dhtmlx/codebase/fonts/font_roboto/roboto.css"/>	
+	<link rel="stylesheet" type="text/css" href="../static/dhtmlx/skins/web/dhtmlx.css"/>
+	<link rel="stylesheet" type="text/css" href="../static/dhtmlx/skins/terrace/dhtmlx.css"/>
+	<link rel="stylesheet" type="text/css" href="../static/dhtmlx/skins/skyblue/dhtmlx.css"/>
+	<link rel="stylesheet" type="text/css" href="../static/dhtmlx/codebase/dhtmlx.css"/>
+	<script type="text/javascript" src="../static/js/jquery.min.js"></script>
+	<script src="../static/dhtmlx/codebase/dhtmlx.js"></script>
+	<style type="text/css">
+	    html, body {
+			width: 100%;
+			height: 100%;
+			margin: 0px;
+			padding: 0px;
+			background-color: #ebebeb;
+			overflow: hidden;
+		}
+		#winT{
+		    margin:5px 8px;
+		}
+		.sli{
+		   height:40px;
+		   line-height:40px;
+		   text-align:left;
+		   border-bottom:1px solid #ccc;
+		   cursor:pointer;
+		}
+		a{
+		   text-decoration: none;
+		}
+	</style>
+</head>
+<body>
+   <div id="sqlframe" style="display:none">
+     <input multiple="multiple" type="text" style="width:100%;height:200px;overflow:scroll" id="sqlinput">
+   </div>
+</body>
+<script type="text/javascript">
+  
+  
+  function doOnRefresh(){
+	    //刷新页面
+	    var activeTabId=world.tabBar.getActiveTab();
+	    var activeTab = world.tabBar.cells(activeTabId);    
+	    var attachGrid=activeTab.attachGrid();
+ 	    var tableName=activeTab.getText();
+ 	    attachGrid.clearAndLoad("../listData.do?tableName="+tableName,doOnAfterRefresh,"json");    
+  }
+  function doOnAfterRefresh (){
+	  //alert("刷新成功");
+  }
+  function doOnAfterLoadStructure(){
+	  //alert("框架加载完成");
+  }
+  function doOnLoadStructure(){
+	    var activeTabId=world.tabBar.getActiveTab();
+	    var activeTab = world.tabBar.cells(activeTabId);    
+	    var attachGrid=activeTab.attachGrid();
+	    var tableName=activeTab.getText();
+ 	    attachGrid.clearAndLoad("../getStructure.do?tableName="+tableName,doOnAfterLoadStructure,"json");
+  }
+  function doOnLoadClose(){
+	    var activeTabId=world.tabBar.getActiveTab();
+	    var activeTab = world.tabBar.cells(activeTabId);    
+	    activeTab.close(false);
+  }
+  function doOnSqlQuery(){
+	   var selectText= world.acc_a1_tree.getSelectedItemText();
+	   if(selectText){
+		    var selectId=world.acc_a1_tree.getSelectedItemId();
+		    if(world.acc_a1_tree.hasChildren(selectId)==0){
+		        //是子集
+		    	 world.addTab_sqlQuery(selectText);        
+		    }
+	   }else{
+		   alert("请选择一张表");
+	   }
+  }
+  function doOnAfterSqlStr(){
+	    var activeTabId=world.tabBar.getActiveTab();    
+	    $("body").append('<div id="sqlframe" style="display:none">'+
+	   	     '<input multiple="multiple" type="text" style="width:100%;height:200px;overflow:scroll" id="sqlinput"></div>'
+	    	 	  );
+	    world.tabBar.tabs(activeTabId).appendObject("sqlframe");
+  }
+  function doOnRunSql(){
+	    //
+	   var sqlStr=$("#sqlinput").val();
+	   var activeTabId=world.tabBar.getActiveTab();
+	   var activeTab = world.tabBar.cells(activeTabId);    
+	   var attachGrid=activeTab.attachGrid(); 
+	   attachGrid.load("../sqlQuery.do?sql="+sqlStr,doOnAfterSqlStr,"json");
+
+  }
+  var world;
+  var World=function (){
+	   //加载布局， 
+	    this.layout;
+	    //加载手风琴 accordion组件
+	    this.accordion;
+	    this.acc_a1_tree;this.acc_a2_tree;
+	    this.tabBar;
+	    this.toolBar;
+  }
+  World.prototype={
+		
+		initLayout:function (){
+			  this.layout=new dhtmlXLayoutObject({
+				parent: document.body,
+				pattern: "2U",
+				cells: [
+					{id: "a", text: "导航栏",width:200},
+					{id: "b", header:false,text: "Site Navigation", collapsed_text: "Expand to navigate"}
+				],
+				offsets: {
+					top: 0,
+					right: 0,
+					bottom: 0,
+					left: 0
+				}
+			 });			
+			 //锁定缩放。
+			 this.layout.cells("a").fixSize(true,false);
+			 // 加载tabbar
+			 this.initTabBar();
+			 //初始化手风琴
+			 this.initAccordion();
+			 //初始化Toolbar
+			 this.initToolbar(); 
+		}, 
+		initToolbar:function (){
+			 this.toolBar=this.layout.attachToolbar({
+		    	   icon_path:"../img/toolbar/imgs/",
+		    	   items:[ {type:"button",id:"sqlQuery",img:"save.gif",img_disabled:"save_dis.gif",
+		    	            text:"sqlQuery",action:"doOnSqlQuery"
+		    	            },{
+		    	              type:"separator",id:"sep1"
+		    	            }
+		    	          ]
+		       });		 
+			 
+		},
+		init:function (){	
+			 this.initLayout();
+    			  
+		},
+		initTabBar:function (){
+			 this.tabBar=this.layout.cells("b").attachTabbar({
+				 tabs:[{
+				        id:"startTab",
+				        text:"开始页",
+				        active:true,
+				        close:false
+				       }
+				     ]
+			 });		
+		},
+		initAccordion:function (){			  
+			  this.accordion=this.layout.cells("a").attachAccordion();
+			  this.accordion.addItem("a1","数据库连接");
+			  this.accordion.setSkin("dhx_skyblue");
+			    //初始化内容.
+			  this.initAccordion_a1_tree(); 
+			   //给树绑定双击事件。
+			  this.acc_a1_tree.setOnDblClickHandler(function (id){
+				    //节点不应该有双击事件。
+				    if(world.acc_a1_tree.hasChildren(id)>0) return;
+				    var tableName= world.acc_a1_tree.getItemText(id);
+				    world.addTab_grid("../listData.do",id,tableName);
+			  });
+			  this.accordion.addItem("a2","可视化界面");
+			  this.initAccordion_a2_tree();
+			  this.acc_a2_tree.setOnDblClickHandler(function (id){
+				       world.addTab("view/usermanage.html",id,world.acc_a2_tree.getItemText(id));
+			  });  
+			   
+		},
+		initAccordion_a1_tree:function (){
+			   //初始化a1内的树
+			  this.acc_a1_tree= this.accordion.cells("a1").attachTree();
+			  this.acc_a1_tree.setItemText(0,"database");
+			  this.acc_a1_tree.setImagePath("../static/dhtmlx/skins/terrace/imgs/dhxtree_terrace/");
+			  this.acc_a1_tree.enableDragAndDrop(false);
+			  this.acc_a1_tree.load("../listTablenames.do","json");		   
+		},
+		initAccordion_a2_tree:function (){
+			   //初始化a2内的树
+			  this.acc_a2_tree= this.accordion.cells("a2").attachTree();
+			  this.acc_a2_tree.setItemText(0,"view");
+			  this.acc_a2_tree.setImagePath("../static/dhtmlx/skins/terrace/imgs/dhxtree_terrace/");
+			  this.acc_a2_tree.enableDragAndDrop(true);
+			  this.acc_a2_tree.parse([[1,0,"userView"]],"jsarray");		   
+		},
+		addTab:function (url,id,text){
+			 //内嵌网页
+			if(!text) text="tab";
+			if(!this.tabBar.tabs(id)){
+				
+			     //不存在才添加。
+				  this.tabBar.addTab(id,text,null,null,true,true);
+			     //加载网页。
+				  this.tabBar.tabs(id).attachURL(url);
+			     
+			}else{
+			    //显示
+				this.tabBar.tabs(id).show();	
+				//激活
+				this.tabBar.tabs(id).setActive();
+			}
+		},
+		addTab_sqlQuery:function (tableName){
+			
+			if(!this.tabBar.tabs(tableName+"sqlQuery")){    
+			   this.tabBar.addTab(tableName+"sqlQuery",tableName+"sqlQuery",null,null,true,true);
+			    //加载grid
+			   var grid= this.tabBar.tabs(tableName+"sqlQuery").attachGrid(); 
+			 //  grid.load("../sqlQuery.do?sql=select * from "+tableName+";",doOnAfterSqlStr,"json");
+			    //加载editor    
+		     //  var editor=this.tabBar.tabs(tableName+"sqlQuery").attachEditor().setContent("input your sql");
+			    
+			    this.tabBar.tabs(tableName+"sqlQuery").appendObject("sqlframe");
+			    //加载toolbar
+			   var toolbar= this.tabBar.tabs(tableName+"sqlQuery").attachToolbar({
+		    	   icon_path:"../img/toolbar/imgs/",
+		    	   items:[ {type:"button",id:"runSql",img:"redo.gif",img_disabled:"redo_dis.gif",
+		    	            text:"runSql",action:"doOnRunSql"
+		    	            },{
+		    	              type:"separator",id:"sep1"
+		    	            },
+		    	            {type:"button",id:"close",img:"open.gif",img_disabled:"open_dis.gif",
+			    	            text:"close",action:"doOnLoadClose"
+			    	        }
+		    	          ]
+		       });		    
+		     }else{ 
+				    //显示
+					this.tabBar.tabs(tableName+"sqlQuery").show();	
+					//激活
+					this.tabBar.tabs(tableName+"sqlQuery").setActive();
+		    }  
+		},
+		addTab_grid:function (url,id,text){
+			//内嵌grid
+			 //内嵌网页
+			if(!text) text="tab";
+			if(!this.tabBar.tabs(id)){
+			     //不存在才添加。
+				  this.tabBar.addTab(id,text,null,null,true,true);
+			     //加载grid。
+				   var grid= this.tabBar.tabs(id).attachGrid();
+			     //加载toolbar
+			       var toolbar=this.tabBar.tabs(id).attachToolbar({
+			    	   icon_path:"../img/toolbar/imgs/",
+			    	   items:[ {type:"button",id:"refresh",img:"redo.gif",img_disabled:"redo_dis.gif",
+			    	            text:"refresh",action:"doOnRefresh"
+			    	            },{
+			    	              type:"separator",id:"sep1"
+			    	            },
+			    	            {type:"button",id:"structure",img:"page.gif",img_disabled:"page_dis.gif",
+				    	            text:"structure",action:"doOnLoadStructure"
+				    	        },{
+			    	              type:"separator",id:"sep2"
+			    	            },
+			    	            {type:"button",id:"close",img:"open.gif",img_disabled:"open_dis.gif",
+				    	            text:"close",action:"doOnLoadClose"
+				    	        }
+			    	          ]
+			       });
+			   
+			     //
+ 			     //grid.setHeader("用户名,密码,电话,邮箱,性别");
+ 			     //grid.setInitWidths("70,100,100,150,*");
+			     //grid.setColAlign("left,left,left","left","left");
+			     // grid.setColTypes("ed,ed,ed,ed,ro");
+			     grid.enableAutoWidth(true);//自动调整宽度。
+			     //  grid.init();
+			     grid.load(url+"?tableName="+text,"json");
+			}else{ 
+			    //显示
+				this.tabBar.tabs(id).show();	
+				//激活
+				this.tabBar.tabs(id).setActive();
+			}  
+		}
+  }
+  window.onload=function (){
+	       world=new World();
+	       world.init();    	     
+  }
+     
+</script>
+</html>

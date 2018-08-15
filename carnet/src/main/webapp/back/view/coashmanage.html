@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>教练管理</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	
+	<link rel="stylesheet" type="text/css" href="../../static/dhtmlx/codebase/fonts/font_roboto/roboto.css"/>
+	<link rel="stylesheet" type="text/css" href="../../static/dhtmlx/codebase/dhtmlx.css"/>
+	<script type="text/javascript" src="../../static/js/jquery.min.js"></script>
+	<script src="../../static/dhtmlx/codebase/dhtmlx.js"></script>
+<style type="text/css">
+ html, body {
+			width: 100%;
+			height: 100%;
+			margin: 0px;
+			padding: 0px;
+			background-color: #ebebeb;
+			overflow: hidden;
+		}
+#gridId{
+   width:100%;
+   height:100%;
+}		
+</style>
+</head>
+<body onload="onwindowload()">
+   <div id="toolbar"></div>
+   <div id="gridId"></div>
+   <div id="winVP" style="display: none;">
+        <div id="winT" >
+            
+		</div>
+   </div>
+</body>
+<script type="text/javascript">
+//variables
+  var grid,dataPro,toolbar,dhxWins,w1,form;
+    
+//toolbar event
+  function doOnAdd(){
+	  if(dhxWins==null)
+	{ 
+	  dhxWins=new dhtmlXWindows();  
+	  w1 = dhxWins.createWindow("w1", 20, 30, 400,370);
+	  w1.setText("新增");
+	  w1.setModal(true);
+	  w1.attachObject("winVP");  
+	  var formData=[
+			   {type:"fieldset",name:"data",label:"新增",inputWidth:"auto",
+				   list:[
+				    {type:"input",name:"username",label:"用户名"},
+				    {type:"input",name:"password",label:"密码"},
+				    {type:"input",name:"name",label:"姓名"},
+				    {type:"button",name:"add",value:"保存"}
+				  ]}
+			];
+	   
+	    form=w1.attachForm(formData);
+	    form.attachEvent("onButtonClick",function(name){
+	    	 
+		      if(name=="add"){  
+		    	   //获取表单数据。
+		    	   var data=form.getFormData();
+	    	       //发送ajax
+	    	       $.ajax({
+	    	    	  url:"../../insertCoach.do",
+	    	    	  type:"post",
+	    	    	  data:data,
+	    	    	  dateType:"json",
+	    	    	  success:function (data){    	    		 
+	    	    		  grid.load("../../listCoach.do","json");
+	    	    		  hideWindow();
+	    	    	  },
+	    	    	  error:function (e){
+	    	    		  alert("系统异常")
+	    	    	  }
+	    	       });
+	    	       
+		      }
+	    });
+	     //覆盖原先的关闭事件。
+	   w1.attachEvent("onClose", function(win){
+		    hideWindow();
+			return false;
+	   });
+	 }else{
+		showWindow();
+	 }
+  }
+  function doOnDelete(){
+	  
+	 var id= grid.getSelectedId();
+	 if(id){
+		  $.ajax({
+	    	  url:"../../deleteCoach.do?id="+id,
+	    	  type:"get",
+	    	  dateType:"json",
+	    	  success:function (data){    	    		 
+	    		  grid.load("../../listCoach.do","json");
+	    		  
+	    	  },
+	    	  error:function (e){
+	    		  alert("系统异常");
+	    	  }
+	       });
+	 }else{
+		  alert("请选择一个需要删除的数据");
+	 }
+   } 
+  function  showWindow (){
+		 this.dhxWins.window("w1").show();
+		 this.w1.setModal(true);
+  }
+ function  hideWindow (){
+		 this.dhxWins.window("w1").hide();
+		 this.w1.setModal(false);
+  }
+  function initToolbar(){
+	   toolbar=new dhtmlXToolbarObject({
+			parent: "toolbar",
+			icons_path: "../../img/toolbar/imgs/",
+			xml: "../../xml/dhxtoolbar_button.xml"
+		});
+	   //添加分割线
+	   toolbar.addSeparator("sep5", 14);
+  }
+  
+  function initGrid(){
+	   grid=new dhtmlXGridObject("gridId");
+		 //设置grid
+			 grid.setHeader("用户名,密码,姓名");
+			 grid.setInitWidths("70,100,*");
+			 grid.setColAlign("left,left,left");
+			 grid.setColTypes("ed,ed,ed");
+			 //这个关系到后面的自动传值，必须设置。
+			 grid.setColumnIds("username,password,name");
+			 
+			 grid.init();
+			 grid.load("../../listCoach.do","json");
+			 
+			 //设置自动刷新。
+			 dataPro=new dataProcessor("../../updateCoach.do");
+			 dataPro.enableDataNames(true);
+			 dataPro.setUpdateMode("off");//设置手动发送数据
+			 
+			 //加载数据。
+			 dataPro.init(grid);	
+			 grid.attachEvent("onEditCell",function (stage,row,cell,newValue,oldValue){
+				     //stage 0:编辑前 1:编辑中 2:编辑后 
+				   if(stage==2){
+					    if(confirm("确认修改吗?")){	    	
+					    	 dataPro.sendData(); //发送数据
+					    	 grid.cells(row,cell).setValue(newValue);
+					    }else{
+					    	 grid.cells(row,cell).setValue(oldValue);
+					    }
+				   }
+			 });
+  }
+  function onwindowload(){
+	  initGrid();
+	  initToolbar();
+  }
+</script>
+</html>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+  <display-name>carnet</display-name>
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.htm</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+  </welcome-file-list>
+  <servlet>
+    <servlet-name>UserServlet</servlet-name>
+    <servlet-class>carnet.servlet.UserServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UserServlet</servlet-name>
+    <url-pattern>*.do</url-pattern>
+  </servlet-mapping>
+ 
+  
+  
+<!--   <filter> -->
+<!--     <display-name>MyFilter</display-name> -->
+<!--     <filter-name>MyFilter</filter-name> -->
+<!--     <filter-class>carnet.filter.MyFilter</filter-class> -->
+<!--     <init-param> -->
+<!--     定义无条件放过的路径。 -->
+<!--        <param-name>paths</param-name> -->
+<!--        <param-value>/showLogin.do,/login.do,/showRegister.do,/register.do,/listUser.do</param-value> -->
+<!--     </init-param> -->
+<!--   </filter> -->
+<!--   <filter-mapping> -->
+<!--     <filter-name>MyFilter</filter-name> -->
+<!--     <url-pattern>*.do</url-pattern> -->
+<!--   </filter-mapping> -->
+ 
+</web-app>

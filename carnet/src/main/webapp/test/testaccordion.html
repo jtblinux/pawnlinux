@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>手风琴</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<link rel="stylesheet" type="text/css" href="../static/dhtmlx/codebase/fonts/font_roboto/roboto.css"/>
+	
+    <link rel="stylesheet" type="text/css" href="../static/dhtmlx/skins/web/dhtmlx.css"/>
+	<link rel="stylesheet" type="text/css" href="../static/dhtmlx/skins/terrace/dhtmlx.css"/>
+	<link rel="stylesheet" type="text/css" href="../static/dhtmlx/skins/skyblue/dhtmlx.css"/>
+	
+	<link rel="stylesheet" type="text/css" href="../static/dhtmlx/codebase/dhtmlx.css"/>
+	<script src="../static/dhtmlx/codebase/dhtmlx.js"></script>
+<style type="text/css">
+ html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0px;
+        overflow: hidden;
+    }
+</style>
+
+</head>
+<body onload="doOnLoad()">
+  
+</body>
+<script type="text/javascript">
+   var myAcc,myTree;
+   function doOnLoad(){
+	   myAcc=new dhtmlXAccordion({
+		   parent:document.body,
+		   icons_path:"../static/dhtmlx/icons/", //存放图标
+		   skin:"dhx_skyblue", //存放皮肤
+		   multi_mode:false,
+		   dnd:true,//可以拖拽。dragandrop
+           items:[{
+        	  
+                   id:     "a1",       // item id, required
+                   text:   "Text",     // string, header's text (html allowed)
+                   icon:   "flag_blue.png", // string, header's icon, optional
+                   open:   true,       // boolean, true to open/false to close item on init
+                   height: 200         // number, cell's height (multimode only)
+               
+           },{
+         	  
+               id:     "a2",       // item id, required
+               text:   "Text2",     // string, header's text (html allowed)
+               icon:   "flag_blue.png", // string, header's icon, optional
+               open:   true,       // boolean, true to open/false to close item on init
+               height: 200         // number, cell's height (multimode only)
+           
+           }]
+          
+	   });
+	   myTree=myAcc.cells("a1").attachTree();
+	   myTree.setImagePath("../static/dhtmlx/skins/terrace/imgs/dhxtree_terrace/");
+	   myTree.enableDragAndDrop(true);
+	   myTree.parse([[1,0,"1111"], [2,0,"2222"], [3,0,"3333"], [4,2,"child"]], "jsarray");
+   }
+
+</script>
+</html>
